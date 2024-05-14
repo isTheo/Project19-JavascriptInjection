@@ -6,7 +6,11 @@ Action.prototype = {
 
 run: function(parameters) {
     //means "tell iOS the JavaScript has finished preprocessing, and give this data dictionary to the extension
-    parameters.completionFunction({"URL": document.URL, "title": document.title});
+    parameters.completionFunction({
+        "URL": document.URL,
+        "title": document.title,
+        "userAgent": navigator.userAgent,
+        "platform": navigator.platform});
 },
 
 finalize: function(parameters) {

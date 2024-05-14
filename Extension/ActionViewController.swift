@@ -24,6 +24,7 @@ class ActionViewController: UIViewController {
         super.viewDidLoad()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Scripts", style: .plain, target: self, action: #selector(scriptButton))
         
         let notificationCenter = NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(adjustForKeyboard), name: UIResponder.keyboardWillHideNotification, object: nil)
@@ -60,10 +61,10 @@ class ActionViewController: UIViewController {
 
     
     //è praticamente solo l'inverso di ciò che abbiamo fatto all'interno di viewDidLoad
-    @IBAction func done() {
+    @IBAction func done(_ script: String) {
         
         let item = NSExtensionItem()
-        let argument: NSDictionary = ["customJavaScript": script.text]
+        let argument: NSDictionary = ["customJavaScript": script]
         let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
         let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
         item.attachments = [customJavaScript]
@@ -89,6 +90,40 @@ class ActionViewController: UIViewController {
 
         let selectedRange = script.selectedRange
         script.scrollRangeToVisible(selectedRange)
+    }
+    
+    
+    
+    @objc func scriptButton() {
+        let ac = UIAlertController(title: "Scripts", message: "", preferredStyle: .actionSheet)
+        
+        let pageName = UIAlertAction(title: "Page name", style: .default) { _ in
+        let script1 = "alert(document.title);"
+            self.done(script1)
+            
+        }
+        let pageURL = UIAlertAction(title: "Page URL", style: .default) { _ in
+        let script2 = "alert(document.URL);"
+            self.done(script2)
+            
+        }
+        let browserInfo = UIAlertAction(title: "Browser info", style: .default) { _ in
+        let script3 = "alert(navigator.userAgent);"
+            self.done(script3)
+            
+        }
+        let operatingSystem = UIAlertAction(title: "Operating System", style: .default) { _ in
+        let script4 = "alert(navigator.platform);"
+            self.done(script4)
+            
+        }
+        ac.addAction(pageName)
+        ac.addAction(pageURL)
+        ac.addAction(browserInfo)
+        ac.addAction(operatingSystem)
+        
+        
+        present(ac, animated: true)
     }
     
     
