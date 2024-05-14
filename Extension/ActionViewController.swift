@@ -16,12 +16,19 @@ class ActionViewController: UIViewController {
 
     @IBOutlet var script: UITextView!
     
+    //using UTType.propertyList.identifier because kUTTypePropertyList was deprecated in iOS 15
+    let propertyList = UTType.propertyList.identifier
+    
     var pageTitle = ""
     var pageURL = ""
+    var browserInfo = ""
+    var operatingSystem = ""
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //let userDefaults = UserDefaults.standard
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Scripts", style: .plain, target: self, action: #selector(scriptButton))
@@ -36,7 +43,7 @@ class ActionViewController: UIViewController {
             //verifica se l'elemento di input ha degli allegati
             if let itemProvider = inputItem.attachments?.first {
                 //carica l'allegato come tipo di dati kUTTypePropertyList
-                itemProvider.loadItem(forTypeIdentifier: kUTTypePropertyList as String) { [weak self] (dict, error) in
+                itemProvider.loadItem(forTypeIdentifier: propertyList as String) { [weak self] (dict, error) in
                     
                     //verifica che il dizionario caricato sia valido
                     guard let itemDictionary = dict as? NSDictionary else {return}
@@ -46,6 +53,9 @@ class ActionViewController: UIViewController {
                     //setting of our two properties from the javaScriptValues dictionary, typecasting them as String
                     self?.pageTitle = javaScriptValues["title"] as? String ?? ""
                     self?.pageURL = javaScriptValues["URL"] as? String ?? ""
+                    self?.browserInfo = javaScriptValues["userAgent"] as? String ?? ""
+                    self?.operatingSystem = javaScriptValues["platform"] as? String ?? ""
+                    
                     
                     //this (set the view controller's title property on the main queue) is needed because the closure being executed as a result of loadItem(forTypeIdentifier:) could be called on any thread, and we don't want to change the UI unless we're on the main thread
                     DispatchQueue.main.async {
@@ -61,12 +71,11 @@ class ActionViewController: UIViewController {
 
     
     //è praticamente solo l'inverso di ciò che abbiamo fatto all'interno di viewDidLoad
-    @IBAction func done(_ script: String) {
-        
+    @IBAction func done() {
         let item = NSExtensionItem()
-        let argument: NSDictionary = ["customJavaScript": script]
+        let argument: NSDictionary = ["customJavaScript": script.text ?? "No value found"]
         let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
-        let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
+        let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: propertyList as String)
         item.attachments = [customJavaScript]
         
         extensionContext?.completeRequest(returningItems: [item])
@@ -98,25 +107,25 @@ class ActionViewController: UIViewController {
         let ac = UIAlertController(title: "Scripts", message: "", preferredStyle: .actionSheet)
         
         let pageName = UIAlertAction(title: "Page name", style: .default) { _ in
-        let script1 = "alert(document.title);"
-            self.done(script1)
+            self.script.text = "alert(document.title);"
+            self.done()
             
         }
         let pageURL = UIAlertAction(title: "Page URL", style: .default) { _ in
-        let script2 = "alert(document.URL);"
-            self.done(script2)
+            self.script.text = "alert(document.URL);"
+            self.done()
             
         }
         let browserInfo = UIAlertAction(title: "Browser info", style: .default) { _ in
-        let script3 = "alert(navigator.userAgent);"
-            self.done(script3)
-            
+            self.script.text = "alert(navigator.userAgent);"
+            self.done()
         }
         let operatingSystem = UIAlertAction(title: "Operating System", style: .default) { _ in
-        let script4 = "alert(navigator.platform);"
-            self.done(script4)
+            self.script.text = "alert(navigator.platform);"
+            self.done()
             
         }
+        
         ac.addAction(pageName)
         ac.addAction(pageURL)
         ac.addAction(browserInfo)
