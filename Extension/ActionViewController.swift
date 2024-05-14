@@ -9,6 +9,7 @@
 //When working with extensions NSDictionary it's an advantage because we don't care what's in there, we just want to pull out our data.
 
 import UIKit
+import WebKit
 import MobileCoreServices
 import UniformTypeIdentifiers
 
@@ -24,11 +25,11 @@ class ActionViewController: UIViewController {
     var browserInfo = ""
     var operatingSystem = ""
     
-
+    let userDefaults = UserDefaults.standard
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        //let userDefaults = UserDefaults.standard
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Scripts", style: .plain, target: self, action: #selector(scriptButton))
@@ -53,12 +54,15 @@ class ActionViewController: UIViewController {
                     //setting of our two properties from the javaScriptValues dictionary, typecasting them as String
                     self?.pageTitle = javaScriptValues["title"] as? String ?? ""
                     self?.pageURL = javaScriptValues["URL"] as? String ?? ""
-                    self?.browserInfo = javaScriptValues["userAgent"] as? String ?? ""
-                    self?.operatingSystem = javaScriptValues["platform"] as? String ?? ""
+                    //self?.browserInfo = javaScriptValues["userAgent"] as? String ?? ""
+                    //self?.operatingSystem = javaScriptValues["platform"] as? String ?? ""
                     
                     
-                    //this (set the view controller's title property on the main queue) is needed because the closure being executed as a result of loadItem(forTypeIdentifier:) could be called on any thread, and we don't want to change the UI unless we're on the main thread
+                    //this (setting the view controller's title property on the main queue) is needed because the closure being executed as a result of loadItem(forTypeIdentifier:) could be called on any thread, and we don't want to change the UI unless we're on the main thread
                     DispatchQueue.main.async {
+                        if let currentURL = URL(string: self?.pageURL ?? ""), let host = currentURL.host {
+                            self?.script.text = self!.userDefaults.string(forKey: host) ?? ""
+                        }
                         self?.title = self?.pageTitle
                     }
                 }
@@ -130,6 +134,7 @@ class ActionViewController: UIViewController {
         ac.addAction(pageURL)
         ac.addAction(browserInfo)
         ac.addAction(operatingSystem)
+        ac.addAction(UIAlertAction(title: "Close", style: .cancel))
         
         
         present(ac, animated: true)
