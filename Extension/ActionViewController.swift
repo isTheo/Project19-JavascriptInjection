@@ -6,7 +6,7 @@
 //
 
 //NSDictionary works like a regular dictionary, except you don't need to declare or even know what data types it holds.
-//When working with extensions NSDictionary it's an advantage because we don't care what's in there, we just want to pull out our data.
+
 
 import UIKit
 import WebKit
@@ -39,26 +39,17 @@ class ActionViewController: UIViewController {
         notificationCenter.addObserver(self, selector: #selector(adjustForKeyboard), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         
         
-        //verifica se è presente un elemento di input da extensionContext
         if let inputItem = extensionContext?.inputItems.first as? NSExtensionItem {
-            //verifica se l'elemento di input ha degli allegati
             if let itemProvider = inputItem.attachments?.first {
-                //carica l'allegato come tipo di dati kUTTypePropertyList
                 itemProvider.loadItem(forTypeIdentifier: propertyList as String) { [weak self] (dict, error) in
                     
-                    //verifica che il dizionario caricato sia valido
                     guard let itemDictionary = dict as? NSDictionary else {return}
-                    //verifica se il dizionario contiene dati passati da JS
                     guard let javaScriptValues = itemDictionary[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary else {return}
                     
-                    //setting of our two properties from the javaScriptValues dictionary, typecasting them as String
                     self?.pageTitle = javaScriptValues["title"] as? String ?? ""
                     self?.pageURL = javaScriptValues["URL"] as? String ?? ""
-                    //self?.browserInfo = javaScriptValues["userAgent"] as? String ?? ""
-                    //self?.operatingSystem = javaScriptValues["platform"] as? String ?? ""
                     
                     
-                    //this (setting the view controller's title property on the main queue) is needed because the closure being executed as a result of loadItem(forTypeIdentifier:) could be called on any thread, and we don't want to change the UI unless we're on the main thread
                     DispatchQueue.main.async {
                         if let currentURL = URL(string: self?.pageURL ?? ""), let host = currentURL.host {
                             self?.script.text = self!.userDefaults.string(forKey: host) ?? ""
@@ -74,7 +65,7 @@ class ActionViewController: UIViewController {
     }
 
     
-    //è praticamente solo l'inverso di ciò che abbiamo fatto all'interno di viewDidLoad
+    
     @IBAction func done() {
         let item = NSExtensionItem()
         let argument: NSDictionary = ["customJavaScript": script.text ?? "No value found"]
